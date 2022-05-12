@@ -194,79 +194,83 @@ def get_data():
 
     www_m = 1
     www_y = 1996
+    row_m_name = 2
+
+    for www_m in range(1, 3):
+        # current_year =  datetime.now().year
+        days = monthrange(www_y, www_m)[1]
+        #rows = days + 1
+
+
+        worksheet.write(f'A{row_m_name}', month_name(www_m, 'en'), data_format1)
+        worksheet.write(f'B{row_m_name}', '', data_format1)
+
+        #for www_d in range(days + 1):
+        for www_d in range(3):
+            if www_d > 0:
+                print(f'Day ---> {www_d}')
+
+                url = f'https://eresearch.fidelity.com/eresearch/conferenceCalls.jhtml?tab=dividends&begindate={www_m}/{www_d}/{www_y}'
+
+                headers = {
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+                    "User-Agent": f'{ua}'  # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+                    # like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+                }
+
+                with requests.Session() as session:
+                    # ЗАЩИТА от БАНА!!!
+                    #time.sleep(randrange(1, 3))
+
+                    response = session.get(url=url, headers=headers)
+                    #print(response.status_code)
+
+                    soup = BeautifulSoup(response.text, 'lxml')
+
+                    lot_group_all = soup.find_all('div', class_='LotPage-breadcrumbs-breadcrumb')
 
 
 
-    # current_year =  datetime.now().year
-    days = monthrange(www_y, www_m)[1]
 
-    worksheet.write('A2', month_name(www_m, 'en'), data_format1)
-    worksheet.write('B2:G2', '', data_format1)
+                    lot_items = soup.find('table', class_='datatable-component events-calender-table-three').find('tbody').find_all(
+                        'tr')
 
-    for www_d in range(days + 1):
-    #for www_d in range(3):
-        if www_d > 0:
-            print(f'Day ---> {www_d}')
+                    #print(f'LEN: {len(lot_items)}')
 
-            url = f'https://eresearch.fidelity.com/eresearch/conferenceCalls.jhtml?tab=dividends&begindate={www_m}/{www_d}/{www_y}'
+                    if len(lot_items) == 1:
+                        print(f'LEN: {len(lot_items)}')
+                        empty.append(url)
+                    else:
+                        for lot in lot_items:
 
-            headers = {
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                "User-Agent": f'{ua}'  # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-                # like Gecko) Chrome/96.0.4664.45 Safari/537.36"
-            }
+                            company = lot.find('strong').text
+                            # try:
+                            #     symbol = lot.find('td', class_='lft-rt-border center blue-links').find('a').text.strip()
+                            # except:
+                            #     try:
+                            #         symbol = lot.find('td', class_='lft-rt-border center blue-links').text.strip()
+                            #     except:
+                            #         pass
 
-            with requests.Session() as session:
-                # ЗАЩИТА от БАНА!!!
-                #time.sleep(randrange(1, 3))
+                            data_all = lot.find_all('td')
+                            ddd = []
 
-                response = session.get(url=url, headers=headers)
-                #print(response.status_code)
+                            for j in data_all:
+                                ddd.append(j.text.strip())
 
-                soup = BeautifulSoup(response.text, 'lxml')
+                            # print(f'str --->{i}')
+                            # print(ddd)
 
-                lot_group_all = soup.find_all('div', class_='LotPage-breadcrumbs-breadcrumb')
-
-
-
-
-                lot_items = soup.find('table', class_='datatable-component events-calender-table-three').find('tbody').find_all(
-                    'tr')
-
-                #print(f'LEN: {len(lot_items)}')
-
-                if len(lot_items) == 1:
-                    print(f'LEN: {len(lot_items)}')
-                    empty.append(url)
-                else:
-                    for lot in lot_items:
-
-                        company = lot.find('strong').text
-                        # try:
-                        #     symbol = lot.find('td', class_='lft-rt-border center blue-links').find('a').text.strip()
-                        # except:
-                        #     try:
-                        #         symbol = lot.find('td', class_='lft-rt-border center blue-links').text.strip()
-                        #     except:
-                        #         pass
-
-                        data_all = lot.find_all('td')
-                        ddd = []
-
-                        for j in data_all:
-                            ddd.append(j.text.strip())
-
-                        # print(f'str --->{i}')
-                        # print(ddd)
-
-                        worksheet.write(f'A{i}', company)
-                        worksheet.write(f'B{i}', ddd[0], bold_2)
-                        worksheet.write(f'C{i}', ddd[1])
-                        worksheet.write(f'D{i}', ddd[2])
-                        worksheet.write(f'E{i}', ddd[3])
-                        worksheet.write(f'F{i}', ddd[4])
-                        worksheet.write(f'G{i}', ddd[5])
-                        i += 1
+                            worksheet.write(f'A{i}', company)
+                            worksheet.write(f'B{i}', ddd[0], bold_2)
+                            worksheet.write(f'C{i}', ddd[1])
+                            worksheet.write(f'D{i}', ddd[2])
+                            worksheet.write(f'E{i}', ddd[3])
+                            worksheet.write(f'F{i}', ddd[4])
+                            worksheet.write(f'G{i}', ddd[5])
+                            i += 1
+        row_m_name = i
+        i = row_m_name + 1
 
     workbook.close()
 
